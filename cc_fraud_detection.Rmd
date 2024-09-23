@@ -1,0 +1,41 @@
+---
+title: "Credit Card Fraud Detection"
+author: "Ertugrul Taparci"
+date: '`r Sys.Date()`'
+output: html_document
+---
+# Introduction
+
+This project aims to detect fraudulent transactions in credit card data using machine learning techniques.
+
+# Load Libraries
+
+```{r setup, include=TRUE}
+# Load necessary libraries
+library(gbm)      # For Gradient Boosting Machine
+library(caret)    # For model evaluation
+library(ggplot2)  # For visualization
+library(dplyr)    # For data manipulation
+```
+
+# Load the dataset
+
+
+```{r}
+data <- read.csv("C:/Users/ertug/Desktop/cc_fraud_detection_ml/data/creditcard.csv", header = TRUE, sep = ",")
+# Display the structure of the dataset
+str(data)
+```
+
+# Class Distribution
+```{r}
+# Check for class distribution
+class_distribution <- table(data$Class)
+
+# Visualize the class distribution
+ggplot(data.frame(class_distribution), aes(x = Var1, y = Freq, fill = Var1)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Class Distribution", x = "Class", y = "Frequency") +
+  theme_minimal()
+```
+
