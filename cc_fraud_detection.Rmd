@@ -39,3 +39,80 @@ ggplot(data.frame(class_distribution), aes(x = Var1, y = Freq, fill = Var1)) +
   theme_minimal()
 ```
 
+# Data Preprocessing
+
+```{r}
+
+# Scale the features (excluding the Class column)
+# Scale the feature variables (excluding the Class variable)
+data_scaled <- data %>%
+  mutate(across(where(is.numeric) & !c(Class), scale))  # Scale only numeric columns except Class
+
+# Split the data into training and testing sets
+set.seed(123)  # For reproducibility
+train_index <- createDataPartition(data_scaled$Class, p = 0.8, list = FALSE)
+train_data <- data_scaled[train_index, ]
+test_data <- data_scaled[-train_index, ]
+
+# Separate features and target variable
+x_train <- train_data[, -ncol(train_data)]
+y_train <- train_data$Class
+x_test <- test_data[, -ncol(test_data)]
+y_test <- test_data$Class
+
+
+```
+
+# Train the Gradient Boosting Machine Model
+
+```{r}
+# Train a Gradient Boosting Machine model
+gbm_model <- gbm.fit(x = x_train, y = y_train, distribution = "bernoulli",
+                     n.trees = 100, interaction.depth = 1, shrinkage = 0.01, 
+                     n.minobsinnode = 10, verbose = FALSE)
+
+```
+
+# Model Prediction
+```{r}
+# Predict on the test set
+y_pred_prob <- predict(gbm_model, newdata = x_test, n.trees = 100, type = "response")
+y_pred_class <- ifelse(y_pred_prob > 0.5, 1, 0)
+
+```
+
+
+# Confusion Matrix and Evaluation Metrics
+
+
+```{r}
+# Create a confusion matrix
+confusion_matrix <- table(y_test, y_pred_class)
+
+# Convert to data frame for visualization
+confusion_df <- as.data.frame(confusion_matrix)
+colnames(confusion_df) <- c("Actual", "Predicted", "Frequency")
+
+# Display confusion matrix
+print(confusion_matrix)
+
+# Calculate evaluation metrics
+confusion_metrics <- confusionMatrix(as.factor(y_pred_class), as.factor(y_test))
+print(confusion_metrics)
+
+```
+
+
+# Visualize the Confusion Matrix
+
+
+```{r}
+
+# Visualize the confusion matrix
+ggplot(confusion_df, aes(x = Actual, y = Frequency, fill = as.factor(Predicted))) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Confusion Matrix", x = "Actual Class", y = "Frequency", fill = "Predicted Class") +
+  theme_minimal()
+
+
+```
